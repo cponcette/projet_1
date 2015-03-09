@@ -2,7 +2,10 @@
 #include <stdio.h>
 #include "dames.h"
  
-
+#define PION_NOIR "O"
+#define PION_BLANC "X"
+#define DAME_NOIRE "@"
+#define DAME_BLANCHE "Q"
 
 struct game create_game(int xsize,int ysize,int cur_player){/*Fonction allouant l'espace mémoire pour un "game"*/
  struct game g1 = malloc(sizeof(struct game)){
@@ -115,16 +118,68 @@ bool is_move_seq_valid(const struct game *game, const struct move_seq *seq, cons
        taken->y = seq->c_old.y +1;
        return 2;
       }
-      else if(
+      else if((((seq->c_new.x)-(seq->c_old.x) > 2) || ((seq->c_old.y)-(seq->c_new.y) > 2)))){
+      if(((seq->c_new.x)-(seq->c_old.x) == (seq->c_old.y)-(seq->c_new.y)) || ((seq->c_old.x)-(seq->c_new.x) == (seq->c_old.y)-(seq->c_new.y))){
+       if(((seq->c_old.x) > (seq->c_new.x)) && ((seq->c_old.y) > (seq->c_new.y))){
+        for (int i=0; i<((seq->c_old.x)-(seq->c_new.x)) ; i++){
+         if(is_White(seq->c_new.x +i, seq->c_new.y +i, game) && (game->board[(seq->c_new.x+i)+1][(seq->c_new.y+i)+1] == 00000000)){
+          taken->x = (seq->c_new.x)+i;
+          taken->y = (seq->c_new.y)+i;
+          return 2;
+         }
+         else{/*Ajouter si 2 pièces sont l'une derrière l'autre*/
+          return 1;
+         }
+        }
+       }
+       else if(((seq->c_old.x) < (seq->c_new.x)) && ((seq->c_old.y) > (seq->c_new.y))){
+        for (int i=0; i<((seq->c_new.x)-(seq->c_old.x)) ; i++){
+         if(is_White(seq->c_old.x +i, seq->c_new.y +i, game) && (game->board[(seq->c_old.x+i)+1][(seq->c_new.y+i)+1] == 00000000)){/*A modifier*/
+          taken->x = (seq->c_old.x)+i;
+          taken->y = (seq->c_new.y)+i;
+          return 2;
+         }
+         else{
+          return 1;
+         }
+        }
+       }
+      }
+      else if(((seq->c_new.x)-(seq->c_old.x) == (seq->c_new.y)-(seq->c_old.y)) || ((seq->c_old.x)-(seq->c_new.x) == (seq->c_new.y)-(seq->c_old.y))){
+       if(((seq->c_old.x) > (seq->c_new.x)) && ((seq->c_old.y) < (seq->c_new.y))){
+        for(int i=0; i<((seq->c_old.x)-(seq->c_new.x)); i++){
+         if(is_White(seq->c_new.x +i, (seq->c_old.y)+i , game) && (game->board[(seq->c_new.x+i)+1][(seq->c_old.y+i)+1] == 00000000)){
+          taken->x = (seq->c_new.x)+i;
+          taken->y = (seq->c_old.y)+i;
+          return 2;
+         }
+         else{
+          return 1;
+         }
+        }
+       }
+       else if(((seq->c_old.x) < (seq->c_new.x)) && ((seq->c_old.y) < (seq->c_new.y))){
+        for (int i=0; i<((seq->c_new.x)-(seq->c_old.x)); i++){
+         if(is_White(seq->c_new.x +i, seq->c_new.y +i, game) && (game->board[(seq->c_old.x+i)+1][(seq->c_old.y+i)+1] == 00000000)){
+          taken->x = seq->c_old.x+i;
+          taken->y = seq->c_old.y+i;
+          return 2;
+         }
+         else{
+          return 1;
+         }
+        }
+       }
+      } 
       else{
        return 0;
       }
      }  
-     else if(is_Dame(seq->c_old.x, seq->c_old.y, *game)){
+     
     }       
   
     else if(is_White(seq->c_old.x,seq->c_old.y, game)){
-     if(((seq->c_new.x == (seq->c_old.x) +1) && (seq->c_new.y == (seq->c_old.y) -1) || ((seq->c_new.x == (seq->c_old.x) -1) && (seq->c_new.y == (seq->c_old.y) -1))){
+     if((seq->c_new.x == (seq->c_old.x) +1) && (seq->c_new.y == (seq->c_old.y) -1) || ((seq->c_new.x == (seq->c_old.x) -1) && (seq->c_new.y == (seq->c_old.y) -1))){
       return 1;
      }
      else if(((seq->c_new.x == (seq->c_old.x) -2) && (seq->c_new.y == seq->c_new.y -2)) || ((seq->c_new.x == (seq->c_old.x) +2) && (seq->c_new.y == seq->c_new.y -2))){
@@ -141,10 +196,10 @@ bool is_move_seq_valid(const struct game *game, const struct move_seq *seq, cons
      else if((((seq->c_new.x)-(seq->c_old.x) > 2) || ((seq->c_old.y)-(seq->c_new.y) > 2)))){
       if(((seq->c_new.x)-(seq->c_old.x) == (seq->c_old.y)-(seq->c_new.y)) || ((seq->c_old.x)-(seq->c_new.x) == (seq->c_old.y)-(seq->c_new.y))){
        if(((seq->c_old.x) > (seq->c_new.x)) && ((seq->c_old.y) > (seq->c_new.y))){
-        for (int i=(seq->c_new.x); i<(seq->c_old.x) ; i++){
-         if(is_Black(seq->c_new.x +i, seq->c_new.y +i, game){/* A modifier*/
-          taken->x = seq->c_new.x+i;
-          taken->y = seq->c_new.y+i;
+        for (int i=0; i<((seq->c_old.x)-(seq->c_new.x)) ; i++){
+         if(is_Black(seq->c_new.x +i, seq->c_new.y +i, game) && (game->board[(seq->c_new.x+i)+1][(seq->c_new.y+i)+1] == 00000000)){/* A modifier*/
+          taken->x = (seq->c_new.x)+i;
+          taken->y = (seq->c_new.y)+i;
           return 2;
          }
          else{
@@ -153,10 +208,10 @@ bool is_move_seq_valid(const struct game *game, const struct move_seq *seq, cons
         }
        }
        else if(((seq->c_old.x) < (seq->c_new.x)) && ((seq->c_old.y) > (seq->c_new.y))){
-        for (int i=(seq->c_old.x); i<(seq->c_new.x) ; i++){
-         if(is_Black(seq->c_old.x +i, seq->c_new.y +i, game){/*A modifier*/
-          taken->x = seq->c_old.x+i;
-          taken->y = seq->c_new.y+i;
+        for (int i=0; i<((seq->c_new.x)-(seq->c_old.x)) ; i++){
+         if(is_Black(seq->c_old.x +i, seq->c_new.y +i, game) && (game->board[(seq->c_old.x+i)+1][(seq->c_new.y+i)+1] == 00000000)){/*A modifier*/
+          taken->x = (seq->c_old.x)+i;
+          taken->y = (seq->c_new.y)+i;
           return 2;
          }
          else{
@@ -167,10 +222,10 @@ bool is_move_seq_valid(const struct game *game, const struct move_seq *seq, cons
       }
       else if(((seq->c_new.x)-(seq->c_old.x) == (seq->c_new.y)-(seq->c_old.y)) || ((seq->c_old.x)-(seq->c_new.x) == (seq->c_new.y)-(seq->c_old.y))){
        if(((seq->c_old.x) > (seq->c_new.x)) && ((seq->c_old.y) < (seq->c_new.y))){
-        for(int i=(seq->c_new.x); i<(seq->c_old.x); i++){
-         if(is_Black(seq->c_new.x +i, seq->c_old.y +i, game){
-          taken->x = seq->c_new.x+i;
-          taken->y = seq->c_old.y;
+        for(int i=0; i<((seq->c_old.x)-(seq->c_new.x)); i++){
+         if(is_Black(seq->c_new.x +i, (seq->c_old.y)+i , game) && (game->board[(seq->c_new.x+i)+1][(seq->c_old.y+i)+1] == 00000000)){
+          taken->x = (seq->c_new.x)+i;
+          taken->y = (seq->c_old.y)-i;
           return 2;
          }
          else{
@@ -179,11 +234,12 @@ bool is_move_seq_valid(const struct game *game, const struct move_seq *seq, cons
         }
        }
        else if(((seq->c_old.x) < (seq->c_new.x)) && ((seq->c_old.y) < (seq->c_new.y))){
-        for (int i=(seq->c_new.x); i<(seq->c_old.x) ; i++){
-         if(is_Black(seq->c_new.x +i, seq->c_new.y +i, game){
-          taken->x = seq->c_new.x+i;
-          taken->y = seq->c_new.y+i;
+        for (int i=0; i<((seq->c_new.x)-(seq->c_old.x)); i++){
+         if(is_Black(seq->c_old.x +i, seq->c_old.y +i, game) && (game->board[(seq->c_old.x+i)+1][(seq->c_old.y+i)+1] == 00000000)){
+          taken->x = seq->c_old.x+i;
+          taken->y = seq->c_old.y+i;
           return 2;
+         }
          else{
           return 1;
          }
@@ -226,16 +282,12 @@ bool is_White(int x, int y , struct game *game){/*Fonction qui indique si la cas
 
 
 bool is_Dame (int x, int y, struct game *game);{/*Fonction qui indique si la pièce est une dame ou pas*/
- if(is_Pion(int x, int y, struct game *game)){
   if((game->board[x][y] == 00000011) || (game->board[x][y] == 00000111)){
    return 1;
   }
   else{
    return 0;
   }
- else{
-  return 0;
- }
 }
 
 
@@ -248,26 +300,66 @@ bool is_Dame (int x, int y, struct game *game);{/*Fonction qui indique si la pi�
  * @return: -1 si erreur (e.g. mouvement invalide), 0 si mouvements valides, 1 si jeu terminé (game->cur_player est le gagnant)
  */
 int apply_moves(struct game *game, const struct move *moves){
- if(is_Black(seq->c_old.x, seq->c_old.y, game)){
   while(moves->next != NULL)do{
    while(moves->seq != NULL)do{
     if(is_move_seq_valid() == 1){
-     
+     if(is_Black(move->seq->c_old.x,move->seq->c_old.y, game)){
+      if(is_Dame(move->seq->c_old.x, move->seq->c_old.y, game)){
+       game->board[move->seq->c_old.x][move->seq->c_old.y] = 00000000;
+       game->board[move->seq->c_new.x][move->seq->c_new.y] = 00000011;
+      }
+      else{
+       game->board[move->seq->c_old.x][move->seq->c_old.y] = 00000000;
+       game->board[move->seq->c_new.x][move->seq->c_new.y] = 00000001;
+      }
+     }
+     else if(is_White(move->seq->c_old.x,move->seq->c_old.y, game)){
+      if(is_Dame(move->seq->c_old.x, move->seq->c_old.y, game)){
+       game->board[move->seq->c_old.x][move->seq->c_old.y] = 00000000;
+       game->board[move->seq->c_new.x][move->seq->c_new.y] = 00000111;
+      }
+      else{
+       game->board[move->seq->c_old.x][move->seq->c_old.y] = 00000000;
+       game->board[move->seq->c_new.x][move->seq->c_new.y] = 00000101;
+      }
+     else{
+      return -1;
+     }
     }
     else if(is_move_seq_valid() == 2){
+     if(is_Black(move->seq->c_old.x, move->seq->c_old.y, game)){
+      if(is_Dame(move->seq->c_old.x, move->seq->c_old.y, game)){
+       game->board[move->seq->c_old.x][move->seq->c_old.y] = 00000000;
+       game->board[move-<seq->c_new.x][move->seq->c_new.y] = 00000011;
+       game->board[taken->x][taken->y] = 00000000;
+      }
+      else{
+       game->board[move->seq->c_old.x][move->seq->c_old.y] = 00000000;
+       game->board[move->seq->c_new.x][move->seq->c_new.y] = 00000001;
+       game->board[taken->x][taken->y] = 00000000;
+      }
+     }
+     else if(is_White(move->seq->c_old.x, move->seq->c_old.y, game)){
+      if(is_Dame(move->seq->c_old.x, move->seq->c_old.y, game)){
+       game->board[move->seq->c_old.x][move->seq->c_old.y] = 00000000;
+       game->board[move->seq->c_new.x][move->seq->c_new.y] = 00000111;
+       game->board[taken->x][taken->y] = 00000000;
+      }
+      else{
+       game->board[move->seq->c_old.x][move->seq->c_old.y] = 00000000;
+       game->board[move->seq->c_new.x][move->seq->c_new.y] = 00000101;
+       game->board[taken->x][taken->y] = 00000000;
+      }
+     else{
+      return -1;
+     }
     }
     else{
      return 0;
     }
    }
   }
- }
- else if(is_White(seq->c_old.x, seq->c_old.y, game)){
- }
- else{
-  return 0;
- }
-  
+}  
 
 /*
  * undo_moves
@@ -277,7 +369,8 @@ int apply_moves(struct game *game, const struct move *moves){
  * @n: nombre de coups à annuler. Si n > nombre total de mouvements, alors ignorer le surplus.
  * @return: 0 si OK, -1 si erreur
  */
-int undo_moves(struct game *game, int n);
+int undo_moves(struct game *game, int n){
+ 
 
 /*
  * print_board
@@ -286,13 +379,30 @@ int undo_moves(struct game *game, int n);
  * @game: pointeur vers la structure du jeu
  */
 void print_board(const struct game *game){
- for(int j=0; j<=game->xsize ; j++){
-  for(int i=0 ; i<=game->ysize ; i++){
-   printf(board[i][j]);
+int i, j;
+ for(i=0;i<(game->xsize);i++) {
+  for(j=0;j<(game->ysize);j++) {
+       printf("|");
+        if(game->board[i][j] == 00000000){
+         printf("%s", " ");
+        }
+        else if(game->board[i][j] == 00000101){
+         printf("%s", "X");
+        }
+        else if(game->board[i][j] == 00000001){
+         printf("%s", "O");
+        }
+        else if(game->board[i][j] == 00000101){
+         printf("%s", "@");
+        }
+        else if(game->board[i][j] == 00000111){
+         printf("%s", "Q");
+        }
+        printf("|");
   }
- }
+  printf("\n");
+ } 
 }
- 
  
 
 
