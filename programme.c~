@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 				print_board(game);
 				printf("C'est au tour du joueur noir, de quelle case démarre le pion/dame que vous voulez bouger? ((x,y))");
 				fread(buffer, 6, 1, stdin);
-				struct coord c_old={buffer[1],buffer[3]};
+				struct coord c_old={buffer[1],buffer[3]}; // initialisation des coordonnées de départ
 				char s[]="stop";
 				printf("Quelles sont les coordonnées suivantes? ((x,y))");
 				fread(buffer, 6, 1, stdin);
@@ -43,9 +43,10 @@ int main(int argc, char *argv[])
 				int i=0;					
 				while (!strcmp(buffer,s))
 					do {
-					c_new.x=(int)buffer[1];
+					c_new.x=(int)buffer[1]; // initialisation des coordonnées suivantes
 					c_new.y=(int)buffer[3];
-					struct move_seq seq_i={&seq_(i+1),c_old,c_new}; // comment initialiser seq_(i+1) ???
+					struct move_seq seq_i={NULL,c_old,c_new};
+					seq_i-1->next = seq_i;  // la liste est-elle bien chainée ???
 					c_old=c_new;
 					i++;
 					printf("Quelles sont les coordonnées suivantes? ((x,y)/stop)");
@@ -69,7 +70,8 @@ int main(int argc, char *argv[])
 					do {
 					c_new.x=(int)buffer[1];
 					c_new.y=(int)buffer[3];
-					struct move_seq seq_i={&seq_(i+1),c_old,c_new}; // comment initialiser seq_(i+1) ???
+					struct move_seq seq_i={NULL,c_old,c_new};
+					seq_i-1->next = seq_i;  // la liste est-elle bien chainée ???
 					c_old=c_new;
 					i++;
 					printf("Quelles sont les coordonnées suivantes? ((x,y)/stop)");

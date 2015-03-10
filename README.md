@@ -8,4 +8,5 @@
 <h3>pour ajouter un fichier modifié = git add "nom du fichier"</h3> 
 <h3>pour ajouter tous les fichiers modifiés = git add --all</h3>
 <h3>pour valider les add = git commit -m "message"</h3>
+<h3>pour regarder le statut = git status</h3>
 
