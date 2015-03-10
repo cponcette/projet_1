@@ -70,8 +70,8 @@ int main(int argc, char *argv[])
 					do {
 					c_new.x=(int)buffer[1];
 					c_new.y=(int)buffer[3];
-					struct move_seq seq_i={NULL,c_old,c_new};
-					seq_i-1->next = seq_i;  // la liste est-elle bien chainée ???
+					struct move_seq seqi={NULL,c_old,c_new};
+					seqi-1->next = seqi;  // la liste est-elle bien chainée ???
 					c_old=c_new;
 					i++;
 					printf("Quelles sont les coordonnées suivantes? ((x,y)/stop)");
