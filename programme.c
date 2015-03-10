@@ -35,7 +35,6 @@ int main(int argc, char *argv[])
 				print_board(game);
 				printf("C'est au tour du joueur noir, de quelle case démarre le pion/dame que vous voulez bouger? ((x,y))");
 				fread(buffer, 6, 1, stdin);
-				struct coord c_old={buffer[1], buffer[3]}; // initialisation des coordonnées de départ
 				char s[]="stop";
 				printf("Quelles sont les coordonnées suivantes? ((x,y))");
 				fread(buffer, 6, 1, stdin);
@@ -46,7 +45,7 @@ int main(int argc, char *argv[])
 					do {
 					c_new.x=(int)buffer[1];
 					c_new.y=(int)buffer[3];
-					struct move_seq seq={NULL, c_old, c_new};
+					struct move_seq seq={NULL, c_old, c_new}; // 
 					struct move_seq temp=seq0;
 					while(temp->next != NULL)
 						do {
@@ -57,10 +56,10 @@ int main(int argc, char *argv[])
 					printf("Quelles sont les coordonnées suivantes? ((x,y)/stop)");
 					fread(buffer, 6, 1, stdin);
 					}
-
 				struct move move1={NULL,seq0->next};
 				game->cur_player= PLAYER_WHITE;
 				}
+
 			else if (game->cur_player == PLAYER_WHITE)
 				{
 				print_board(game);

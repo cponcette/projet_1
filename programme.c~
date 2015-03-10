@@ -54,10 +54,11 @@ int main(int argc, char *argv[])
 						}
 					temp->next = seq;
 					c_old = c_new;
-					
+					printf("Quelles sont les coordonnées suivantes? ((x,y)/stop)");
+					fread(buffer, 6, 1, stdin);
 					}
 
-				struct move move1={NULL,&seq0};
+				struct move move1={NULL,seq0->next};
 				game->cur_player= PLAYER_WHITE;
 				}
 			else if (game->cur_player == PLAYER_WHITE)
