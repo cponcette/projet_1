@@ -1,3 +1,6 @@
+#ifndef _AUX_H
+#define _AUX_H
+
 /*
  * Fonction allouant l'espace mémoire pour un "game"
  *
@@ -16,3 +19,4 @@ extern bool is_White(int x, int y , struct game *game);
 /*Fonction qui indique si la pièce est une dame ou pas*/
 bool is_Dame (int x, int y, struct game *game);
 
+#endif

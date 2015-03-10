@@ -13,7 +13,7 @@ jeu : programme.c dames.c dames.h
 	$(CC) programme.c dames.c -o programme
 #
 test :  dames.c test.c dames.h aux.h 
-	$(CC) -c test.c  -o test $(LIBS)
+	$(CC) -c test.c $(LIBS) -o test
 clean :
 	rm -rf *.o
  
