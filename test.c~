@@ -1,4 +1,4 @@
-#include "CUnit.h"
+#include "local/include/CUnit/CUnit.h"
 #include <stdlib.h>
 #include <stdio.h> 
 #include "dames.h"

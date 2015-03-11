@@ -73,22 +73,26 @@ int main(int argc, char *argv[])
 				struct coord c_new={(int)buffer[1],(int)buffer[3]};
 				struct move_seq seq0={NULL, c_old, c_new}; // initialisation du premier élément
 				
-				while (!strcmp(buffer, s))
+				while ( !strcmp(buffer, s) )
 					do {
-					c_new.x=(int)buffer[1];
-					c_new.y=(int)buffer[3];
-					struct move_seq seq={NULL, c_old, c_new}; // creation nouvelle sequence
-					struct move_seq temp=seq0; // pointeur temporaire pour ajouter en bout de liste
-					while(temp->next != NULL)
-						do {
-						temp=temp->next;
-						}
-					temp->next = seq;
-					c_old = c_new; // les coordonnées d'arrivée sont les nouvelles coordonnées de départ
 					printf("Quelles sont les coordonnées suivantes? ( (x,y)/stop )");
 					fread(buffer, 6, 1, stdin);
+					if ( !strcmp(buffer, s) ) // si pas de if, on risque d'essayer de mettre des lettres dans les coordonnées
+						{
+						c_new.x=(int)buffer[1];
+						c_new.y=(int)buffer[3];
+						struct move_seq seq={NULL, c_old, c_new}; // creation nouvelle sequence
+						struct move_seq temp=seq0; // pointeur temporaire pour ajouter en bout de liste
+						while(temp->next != NULL)
+							do {
+								temp=temp->next;
+							}
+						temp->next = seq;
+						c_old = c_new; // les coordonnées d'arrivée sont les nouvelles coordonnées de départ
+						}
+					else {}
 					}
-				move->next=&seq0; // !!!!!! je crois qu'on prend 2 fois les coordonnées du premier déplacement
+				move->next=&seq0;
 				struct move tempo=move0;
 				while (tempo->next != NULL)
 					{
@@ -101,26 +105,40 @@ int main(int argc, char *argv[])
 			else if (game->cur_player == PLAYER_WHITE)
 				{
 				print_board(game);
-				printf("C'est au tour du joueur blanc, de quelle case démarre le pion/dame que vous voulez bouger? ((x,y))");
+				printf("C'est au tour du joueur blanc, de quelle case démarre le pion/dame que vous voulez bouger? ( (x,y) )");
 				fread(buffer, 6, 1, stdin);
-				struct coord c_old={buffer[1],buffer[3]};
 				char s[]="stop";
-				printf("Quelles sont les coordonnées suivantes? ((x,y))");
+				printf("Quelles sont les coordonnées suivantes? ( (x,y) )");
 				fread(buffer, 6, 1, stdin);
-				struct coord c_new;
-				int i=0;					
-				while (!strcmp(buffer,s))
+				struct coord c_new={(int)buffer[1],(int)buffer[3]};
+				struct move_seq seq0={NULL, c_old, c_new}; // initialisation du premier élément
+				
+				while ( !strcmp(buffer, s) )
 					do {
-					c_new.x=(int)buffer[1];
-					c_new.y=(int)buffer[3];
-					struct move_seq seqi={NULL,c_old,c_new};
-					seqi-1->next = seqi;  // la liste est-elle bien chainée ???
-					c_old=c_new;
-					i++;
-					printf("Quelles sont les coordonnées suivantes? ((x,y)/stop)");
+					printf("Quelles sont les coordonnées suivantes? ( (x,y)/stop )");
 					fread(buffer, 6, 1, stdin);
+					if ( !strcmp(buffer, s) ) // si pas de if, on risque d'essayer de mettre des lettres dans les coordonnées
+						{
+						c_new.x=(int)buffer[1];
+						c_new.y=(int)buffer[3];
+						struct move_seq seq={NULL, c_old, c_new}; // creation nouvelle sequence
+						struct move_seq temp=seq0; // pointeur temporaire pour ajouter en bout de liste
+						while(temp->next != NULL)
+							do {
+								temp=temp->next;
+							}
+						temp->next = seq;
+						c_old = c_new; // les coordonnées d'arrivée sont les nouvelles coordonnées de départ
+						}
+					else {}
 					}
-				struct move move1={NULL,&seq_0};
+				move->next=&seq0;
+				struct move tempo=move0;
+				while (tempo->next != NULL)
+					{
+					tempo=tempo->next;					
+					}
+				tempo->next = move;
 				game->cur_player= PLAYER_BLACK;
 				}
 		}

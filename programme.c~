@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "dames.h"
+#include "aux.h"
 
 int main(int argc, char *argv[])
 {
@@ -26,17 +27,48 @@ int main(int argc, char *argv[])
 	else {printf("Erreur, relancez le jeu");
 		return -1;}
 
-	struct move move;
+	struct move move={NULL, NULL};
+	struct move move0={NULL, NULL};
 
-	while (apply_moves(game,&move)!=1)
+	while (apply_moves(game,&move)!=1) // est-ce que le mouvement est appliqué s'il est seulement dans la condition ??
 		do {
+			if (move0->next==NULL)  // initialisation du premier mouvement
+				{
+				print_board(game);
+				printf("C'est au tour du joueur noir, de quelle case démarre le pion/dame que vous voulez bouger? ( (x,y) )");
+				fread(buffer, 6, 1, stdin);
+				char s[]="stop";
+				printf("Quelles sont les coordonnées suivantes? ( (x,y) )");
+				fread(buffer, 6, 1, stdin);
+				struct coordc_new={(int)buffer[1],(int)buffer[3]};
+				struct move_seq seq0[NULL, c_old, c_new};
+
+				while (!strcmp(buffer, s))
+					do {
+					c_new.x=(int)buffer[1];
+					c_new.y=(int)buffer[3];
+					struct move_seq seq={NULL, c_old, c_new};
+					struct move_seq temp=seq0;
+					while (temp->next != NULL)
+						do {
+						temp=temp->next;
+						}
+					temp->next = seq;
+					c_old=c_new;
+					printf("Quelles sont les coordonnées suivantes? ( (x,y)/stop )");
+					fread(buffer, 6, A, stdin);
+					}
+				move0.next=&move;
+				move0.seq=&seq0;
+				
+				}
 			if (game->cur_player == PLAYER_BLACK)
 				{
 				print_board(game);
-				printf("C'est au tour du joueur noir, de quelle case démarre le pion/dame que vous voulez bouger? ((x,y))");
+				printf("C'est au tour du joueur noir, de quelle case démarre le pion/dame que vous voulez bouger? ( (x,y) )");
 				fread(buffer, 6, 1, stdin);
 				char s[]="stop";
-				printf("Quelles sont les coordonnées suivantes? ((x,y))");
+				printf("Quelles sont les coordonnées suivantes? ( (x,y) )");
 				fread(buffer, 6, 1, stdin);
 				struct coord c_new={(int)buffer[1],(int)buffer[3]};
 				struct move_seq seq0={NULL, c_old, c_new}; // initialisation du premier élément
@@ -53,11 +85,17 @@ int main(int argc, char *argv[])
 						}
 					temp->next = seq;
 					c_old = c_new; // les coordonnées d'arrivée sont les nouvelles coordonnées de départ
-					printf("Quelles sont les coordonnées suivantes? ((x,y)/stop)");
+					printf("Quelles sont les coordonnées suivantes? ( (x,y)/stop )");
 					fread(buffer, 6, 1, stdin);
 					}
-				struct move move1={NULL,seq0->next};
-				game->cur_player= PLAYER_WHITE;
+				move->next=&seq0; // !!!!!! je crois qu'on prend 2 fois les coordonnées du premier déplacement
+				struct move tempo=move0;
+				while (tempo->next != NULL)
+					{
+					tempo=tempo->next;					
+					}
+				tempo->next = move;
+				game->cur_player= PLAYER_WHITE; 
 				}
 
 			else if (game->cur_player == PLAYER_WHITE)
