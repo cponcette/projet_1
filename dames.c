@@ -1,14 +1,17 @@
+#ifndef _DAMES_C
 #include <stdlib.h>
 #include <stdio.h>
 #include "dames.h"
+#include <stdbool.h>
+
  
 #define PION_NOIR "O"
 #define PION_BLANC "X"
 #define DAME_NOIRE "@"
-#define DAME_BLANCHE "Q"
+#define DAME_BLANCHE "Q" 
 
 struct game create_game(int xsize,int ysize,int cur_player){/*Fonction allouant l'espace mémoire pour un "game"*/
- struct game g1 = malloc(sizeof(struct game)){
+ struct game *g1 = malloc(sizeof(struct game)){
  g1->xsize = xsize;
  g1->ysize = ysize;
  g1->move = NULL;
@@ -28,8 +31,9 @@ struct game *new_game(int xsize, int ysize)/*Cette fonction n'est définie que p
 l'indice i est impair et l'indice j pair ainsi que sur les cases ou c'est l'inverse (indice i pair et j impair). On laisse les lignes d'indice 4 et 5 vides et puis on réitère la première méthode sur les lignes restantes avec les pions blancs.*/
 {
 struct game *g = create_game(xsize, ysize, PLAYER_WHITE);  
- for(int i=0; i<10 ;i++){
-  for(int j=0; j<10; j++){
+ int i, j;
+ for(i=0; i<10 ;i++){
+  for(j=0; j<10; j++){
    if(!((i%2)== 0) && (j%2) == 0){
     if(j<4){
      g->board[i][j] = 00000001;
@@ -96,7 +100,8 @@ void free_game(struct game *game){
  free(game);
 }
 
-bool is_move_seq_valid(const struct game *game, const struct move_seq *seq, const struct move_seq *prev, struct coord *taken){
+bool is_move_seq_valid(const struct game *game, const struct move_seq *seq, const struct move_seq *prev, struct coord *taken){/*On vérifie d'abord que la séquence précédente a c_new.x,y les même que la séquence actuelle c_old.x,y. On vérifie ensuite que les pions ne sortent pas du plateau. Pour un déplacement de pion on peut avoir
+x qui augmente ou diminue au choix mais y peut seulement augmenter pour un pion noir et diminuer pour un blanc. Même chose pour une prise de pion (+2 ou -2 à la place de +1/-1) sauf que cette fois-ci on peut aussi prendre en arrière donc y peut augmenter et diminuer pour les deux couleurs. Si la séquence implique un mouvement de dame, il faut vérifier que la différence des coordonnées en x et en y soit égale. Si il se trouve un pion/dame sur la trajectoire de la dame, la pièce est prise si et seulement si la case adjacente à celle-ci et dans la trajectoire de la dame est vide.*/
  struct game exemple = create_game(game->xsize, game->ysize, game->cur_player);
   if(!((prev->c_new.x == seq->c_old.x) && (prev->c_new.y == seq->c_old.y))){
    return 0;
@@ -104,10 +109,10 @@ bool is_move_seq_valid(const struct game *game, const struct move_seq *seq, cons
   else{
    if(((seq->c_new.x <= 9) && (seq->c_new.y <= 9)) && ((game->board[seq->c_new.x][seq->c_new.y]) == 00000000)){ 
     if(is_Black(seq->c_old.x, seq->c_old.y, game)){
-     if(((seq->c_new.x == (seq->c_old.x) +1) && (seq->c_new.y == seq->c_old +1)) || ((seq->c_new.x == seq->c_old.x -1) && (seq->c_new.y == seq->c_new.y +1))){
+     if(((seq->c_new.x == (seq->c_old.x) +1) && (seq->c_new.y == seq->c_old.y +1)) || ((seq->c_new.x == seq->c_old.x -1) && (seq->c_new.y == seq->c_new.y +1))){
       return 1;
      }
-     else if(((seq->c_new.x == (seq->c_old.x) -2) && (seq->c_new.y == seq->c_new.y +2)) || ((seq->c_new.x == (seq->c_old.x) +2) && (seq->c_new.y == seq->c_old +2))){
+     else if(((seq->c_new.x == (seq->c_old.x) -2) && (seq->c_new.y == seq->c_new.y +2)) || ((seq->c_new.x == (seq->c_old.x) +2) && (seq->c_new.y == seq->c_old.y +2))){
       if(is_White(seq->c_old.x -1, seq->c_old.y +1, game) || is_White(seq->c_old.x -1, seq->c_old.y -1, game)){
        taken->x = seq->c_old.x -1;
        taken->y = seq->c_old.y +1;
@@ -118,23 +123,25 @@ bool is_move_seq_valid(const struct game *game, const struct move_seq *seq, cons
        taken->y = seq->c_old.y +1;
        return 2;
       }
-      else if((((seq->c_new.x)-(seq->c_old.x) > 2) || ((seq->c_old.y)-(seq->c_new.y) > 2)))){
+      else if(seq->c_new.x-seq->c_old.x > 2 || seq->c_old.y-seq->c_new.y > 2){
       if(((seq->c_new.x)-(seq->c_old.x) == (seq->c_old.y)-(seq->c_new.y)) || ((seq->c_old.x)-(seq->c_new.x) == (seq->c_old.y)-(seq->c_new.y))){
        if(((seq->c_old.x) > (seq->c_new.x)) && ((seq->c_old.y) > (seq->c_new.y))){
-        for (int i=0; i<((seq->c_old.x)-(seq->c_new.x)) ; i++){
+        int i;
+        for (i=0; i<((seq->c_old.x)-(seq->c_new.x)) ; i++){
          if(is_White(seq->c_new.x +i, seq->c_new.y +i, game) && (game->board[(seq->c_new.x+i)+1][(seq->c_new.y+i)+1] == 00000000)){
           taken->x = (seq->c_new.x)+i;
           taken->y = (seq->c_new.y)+i;
           return 2;
          }
-         else{/*Ajouter si 2 pièces sont l'une derrière l'autre*/
+         else{
           return 1;
          }
         }
        }
        else if(((seq->c_old.x) < (seq->c_new.x)) && ((seq->c_old.y) > (seq->c_new.y))){
-        for (int i=0; i<((seq->c_new.x)-(seq->c_old.x)) ; i++){
-         if(is_White(seq->c_old.x +i, seq->c_new.y +i, game) && (game->board[(seq->c_old.x+i)+1][(seq->c_new.y+i)+1] == 00000000)){/*A modifier*/
+        int i;
+        for (i=0; i<((seq->c_new.x)-(seq->c_old.x)) ; i++){
+         if(is_White(seq->c_old.x +i, seq->c_new.y +i, game) && (game->board[(seq->c_old.x+i)+1][(seq->c_new.y+i)+1] == 00000000)){
           taken->x = (seq->c_old.x)+i;
           taken->y = (seq->c_new.y)+i;
           return 2;
@@ -147,7 +154,8 @@ bool is_move_seq_valid(const struct game *game, const struct move_seq *seq, cons
       }
       else if(((seq->c_new.x)-(seq->c_old.x) == (seq->c_new.y)-(seq->c_old.y)) || ((seq->c_old.x)-(seq->c_new.x) == (seq->c_new.y)-(seq->c_old.y))){
        if(((seq->c_old.x) > (seq->c_new.x)) && ((seq->c_old.y) < (seq->c_new.y))){
-        for(int i=0; i<((seq->c_old.x)-(seq->c_new.x)); i++){
+        int i;
+        for(i=0; i<((seq->c_old.x)-(seq->c_new.x)); i++){
          if(is_White(seq->c_new.x +i, (seq->c_old.y)+i , game) && (game->board[(seq->c_new.x+i)+1][(seq->c_old.y+i)+1] == 00000000)){
           taken->x = (seq->c_new.x)+i;
           taken->y = (seq->c_old.y)+i;
@@ -159,7 +167,8 @@ bool is_move_seq_valid(const struct game *game, const struct move_seq *seq, cons
         }
        }
        else if(((seq->c_old.x) < (seq->c_new.x)) && ((seq->c_old.y) < (seq->c_new.y))){
-        for (int i=0; i<((seq->c_new.x)-(seq->c_old.x)); i++){
+        int i;
+        for (i=0; i<((seq->c_new.x)-(seq->c_old.x)); i++){
          if(is_White(seq->c_new.x +i, seq->c_new.y +i, game) && (game->board[(seq->c_old.x+i)+1][(seq->c_old.y+i)+1] == 00000000)){
           taken->x = seq->c_old.x+i;
           taken->y = seq->c_old.y+i;
@@ -175,9 +184,7 @@ bool is_move_seq_valid(const struct game *game, const struct move_seq *seq, cons
        return 0;
       }
      }  
-     
     }       
-  
     else if(is_White(seq->c_old.x,seq->c_old.y, game)){
      if((seq->c_new.x == (seq->c_old.x) +1) && (seq->c_new.y == (seq->c_old.y) -1) || ((seq->c_new.x == (seq->c_old.x) -1) && (seq->c_new.y == (seq->c_old.y) -1))){
       return 1;
@@ -193,10 +200,11 @@ bool is_move_seq_valid(const struct game *game, const struct move_seq *seq, cons
        taken->y = seq->c_old.y -1;
        return 2;
       }
-     else if((((seq->c_new.x)-(seq->c_old.x) > 2) || ((seq->c_old.y)-(seq->c_new.y) > 2)))){
+     else if(seq->c_new.x-seq->c_old.x > 2 || seq->c_old.y-seq->c_new.y > 2){
       if(((seq->c_new.x)-(seq->c_old.x) == (seq->c_old.y)-(seq->c_new.y)) || ((seq->c_old.x)-(seq->c_new.x) == (seq->c_old.y)-(seq->c_new.y))){
        if(((seq->c_old.x) > (seq->c_new.x)) && ((seq->c_old.y) > (seq->c_new.y))){
-        for (int i=0; i<((seq->c_old.x)-(seq->c_new.x)) ; i++){
+        int i;
+        for (i=0; i<((seq->c_old.x)-(seq->c_new.x)) ; i++){
          if(is_Black(seq->c_new.x +i, seq->c_new.y +i, game) && (game->board[(seq->c_new.x+i)+1][(seq->c_new.y+i)+1] == 00000000)){/* A modifier*/
           taken->x = (seq->c_new.x)+i;
           taken->y = (seq->c_new.y)+i;
@@ -208,7 +216,8 @@ bool is_move_seq_valid(const struct game *game, const struct move_seq *seq, cons
         }
        }
        else if(((seq->c_old.x) < (seq->c_new.x)) && ((seq->c_old.y) > (seq->c_new.y))){
-        for (int i=0; i<((seq->c_new.x)-(seq->c_old.x)) ; i++){
+        int i;
+        for (i=0; i<((seq->c_new.x)-(seq->c_old.x)) ; i++){
          if(is_Black(seq->c_old.x +i, seq->c_new.y +i, game) && (game->board[(seq->c_old.x+i)+1][(seq->c_new.y+i)+1] == 00000000)){/*A modifier*/
           taken->x = (seq->c_old.x)+i;
           taken->y = (seq->c_new.y)+i;
@@ -222,7 +231,8 @@ bool is_move_seq_valid(const struct game *game, const struct move_seq *seq, cons
       }
       else if(((seq->c_new.x)-(seq->c_old.x) == (seq->c_new.y)-(seq->c_old.y)) || ((seq->c_old.x)-(seq->c_new.x) == (seq->c_new.y)-(seq->c_old.y))){
        if(((seq->c_old.x) > (seq->c_new.x)) && ((seq->c_old.y) < (seq->c_new.y))){
-        for(int i=0; i<((seq->c_old.x)-(seq->c_new.x)); i++){
+        int i;
+        for(i=0; i<((seq->c_old.x)-(seq->c_new.x)); i++){
          if(is_Black(seq->c_new.x +i, (seq->c_old.y)+i , game) && (game->board[(seq->c_new.x+i)+1][(seq->c_old.y+i)+1] == 00000000)){
           taken->x = (seq->c_new.x)+i;
           taken->y = (seq->c_old.y)-i;
@@ -234,7 +244,8 @@ bool is_move_seq_valid(const struct game *game, const struct move_seq *seq, cons
         }
        }
        else if(((seq->c_old.x) < (seq->c_new.x)) && ((seq->c_old.y) < (seq->c_new.y))){
-        for (int i=0; i<((seq->c_new.x)-(seq->c_old.x)); i++){
+        int i;
+        for (i=0; i<((seq->c_new.x)-(seq->c_old.x)); i++){
          if(is_Black(seq->c_old.x +i, seq->c_old.y +i, game) && (game->board[(seq->c_old.x+i)+1][(seq->c_old.y+i)+1] == 00000000)){
           taken->x = seq->c_old.x+i;
           taken->y = seq->c_old.y+i;
@@ -250,6 +261,7 @@ bool is_move_seq_valid(const struct game *game, const struct move_seq *seq, cons
        return 0;
       }
      }   
+     }
      else{
        return 0;
      }
@@ -260,10 +272,12 @@ bool is_move_seq_valid(const struct game *game, const struct move_seq *seq, cons
    }
   }  
 }  
+}
 
-
-bool is_Black(int x, int y, struct game *game){/*Fonction qui indique si la case est occupée par un pion ou une dame noire*/
- if((game->board[x][y] == 00000001) || (game->board[x][y] == 00000011){
+int is_Black(int x, int y, struct game *game){/*Fonction qui indique si la case est occupée par un pion ou une dame noire*/
+ int x1= x;
+ int y1 = y;
+ if((game->board[x1][y1] == 00000001) || (game->board[x][y] == 00000011)){
   return 1;
  }
  else {
@@ -271,8 +285,10 @@ bool is_Black(int x, int y, struct game *game){/*Fonction qui indique si la case
  }
 }
 
-bool is_White(int x, int y , struct game *game){/*Fonction qui indique si la case est occupée par un pion ou une dame blanche*/
- if((game->board[x][y] == 00000101) || (game->board[x][y] == 00000111)){
+int is_White(int x, int y , struct game *game){/*Fonction qui indique si la case est occupée par un pion ou une dame blanche*/
+ int x1 = x;
+ int y1 = y;
+ if((game->board[x1][y1] == 00000101) || (game->board[x][y] == 00000111)){
   return 1;
  }
  else{
@@ -281,8 +297,10 @@ bool is_White(int x, int y , struct game *game){/*Fonction qui indique si la cas
 }
 
 
-bool is_Dame (int x, int y, struct game *game);{/*Fonction qui indique si la pièce est une dame ou pas*/
-  if((game->board[x][y] == 00000011) || (game->board[x][y] == 00000111)){
+int is_Dame (int x, int y, struct game *game){/*Fonction qui indique si la pièce est une dame ou pas*/
+  int x1 = x;
+  int y1 = y;
+  if((game->board[x1][y1] == 00000011) || (game->board[x][y] == 00000111)){
    return 1;
   }
   else{
@@ -299,66 +317,176 @@ bool is_Dame (int x, int y, struct game *game);{/*Fonction qui indique si la pi�
  * @moves: liste chainée de mouvements à effectuer
  * @return: -1 si erreur (e.g. mouvement invalide), 0 si mouvements valides, 1 si jeu terminé (game->cur_player est le gagnant)
  */
-int apply_moves(struct game *game, const struct move *moves){
-  while(moves->next != NULL)do{
-   while(moves->seq != NULL)do{
-    if(is_move_seq_valid() == 1){
-     if(is_Black(move->seq->c_old.x,move->seq->c_old.y, game)){
-      if(is_Dame(move->seq->c_old.x, move->seq->c_old.y, game)){
-       game->board[move->seq->c_old.x][move->seq->c_old.y] = 00000000;
-       game->board[move->seq->c_new.x][move->seq->c_new.y] = 00000011;
+int apply_moves(struct game *game, const struct move *moves){/*On parcours la structure chainée, si is_move_seq_valid a identifié un déplacement on vide la case de départ et on rempli la case destination. Si elle a identifié une prise on vide la case de départ et la case de prise, on rempli la case de destination. Dans les deux cas, si l'un des joueurs avance un pion sur la dernière ligne en coordonées y, il devient une dame. Après avoir effectué le mouvement on vérifie que le joueur qui n'a pas joué possède encore des pions, sinon fin de partie!*/
+struct move *this_move = game->moves;
+struct  move_seq *this_seq = game->moves->seq;
+  while(this_move != NULL)do{
+   while(this_seq != NULL)do{
+    if(is_move_seq_valid(game, this_move->seq, NULL, NULL) == 1){
+     if(is_Black(this_move->seq->c_old.x,this_move->seq->c_old.y, game)){
+      if(is_Dame(this_move->seq->c_old.x, this_move->seq->c_old.y, game)){
+       this_seq->old_orig = 00000011;
+       game->board[this_move->seq->c_old.x][this_move->seq->c_old.y] = 00000000;
+       game->board[this_move->seq->c_new.x][this_move->seq->c_new.y] = 00000011;
+       this_seq = game->moves->seq->next;
+      }
+      else if(!(is_Dame(this_move->seq->c_old.x, this_move->seq->c_old.y, game)) && (this_move->seq->c_new.y == 9)){
+       this_seq->old_orig = 00000001;
+       game->board[this_move->seq->c_old.x][this_move->seq->c_old.y] = 00000000;
+       game->board[this_move->seq->c_new.x][9] = 00000011;
+       this_seq = game->moves->seq->next;
       }
       else{
-       game->board[move->seq->c_old.x][move->seq->c_old.y] = 00000000;
-       game->board[move->seq->c_new.x][move->seq->c_new.y] = 00000001;
+       this_seq->old_orig = 00000001;
+       game->board[this_move->seq->c_old.x][this_move->seq->c_old.y] = 00000000;
+       game->board[this_move->seq->c_new.x][this_move->seq->c_new.y] = 00000001;
+       this_seq = game->moves->seq->next;
       }
      }
-     else if(is_White(move->seq->c_old.x,move->seq->c_old.y, game)){
-      if(is_Dame(move->seq->c_old.x, move->seq->c_old.y, game)){
-       game->board[move->seq->c_old.x][move->seq->c_old.y] = 00000000;
-       game->board[move->seq->c_new.x][move->seq->c_new.y] = 00000111;
+     else if(is_White(this_move->seq->c_old.x,this_move->seq->c_old.y, game)){
+      if(is_Dame(this_move->seq->c_old.x,this_move->seq->c_old.y, game)){
+       this_seq->old_orig = 00000111;
+       game->board[this_move->seq->c_old.x][this_move->seq->c_old.y] = 00000000;
+       game->board[this_move->seq->c_new.x][this_move->seq->c_new.y] = 00000111;
+       this_seq = game->moves->seq->next;
+      }
+       else if(!(is_Dame(this_move->seq->c_old.x, this_move->seq->c_old.y, game)) && (this_move->seq->c_new.y == 0)){
+       this_seq->old_orig = 00000101;
+       game->board[this_move->seq->c_old.x][this_move->seq->c_old.y] = 00000000;
+       game->board[this_move->seq->c_new.x][0] = 00000111;
+       this_seq = game->moves->seq->next;
       }
       else{
-       game->board[move->seq->c_old.x][move->seq->c_old.y] = 00000000;
-       game->board[move->seq->c_new.x][move->seq->c_new.y] = 00000101;
+       this_seq->old_orig = 00000101;
+       game->board[this_move->seq->c_old.x][this_move->seq->c_old.y] = 00000000;
+       game->board[this_move->seq->c_new.x][this_move->seq->c_new.y] = 00000101;
+       this_seq = game->moves->seq->next;
       }
+     } 
      else{
       return -1;
      }
     }
-    else if(is_move_seq_valid() == 2){
-     if(is_Black(move->seq->c_old.x, move->seq->c_old.y, game)){
-      if(is_Dame(move->seq->c_old.x, move->seq->c_old.y, game)){
-       game->board[move->seq->c_old.x][move->seq->c_old.y] = 00000000;
-       game->board[move-<seq->c_new.x][move->seq->c_new.y] = 00000011;
-       game->board[taken->x][taken->y] = 00000000;
+    else if(is_move_seq_valid(game, this_move->seq, NULL, NULL) == 2){
+     if(is_Black(this_move->seq->c_old.x, this_move->seq->c_old.y, game)){
+      if(is_Dame(this_move->seq->c_old.x, this_move->seq->c_old.y, game)){
+       this_seq->old_orig = 00000011;
+       game->board[this_move->seq->c_old.x][this_move->seq->c_old.y] = 00000000;
+       game->board[this_move->seq->c_new.x][this_move->seq->c_new.y] = 00000011;
+       if(is_Dame(this_move->seq->piece_taken.x,this_move->seq->piece_taken.y, game)){
+        this_seq->piece_value = 00000111;
+       }
+       else{
+        this_seq->piece_value = 00000011;
+       }
+       game->board[this_move->seq->piece_taken.x][this_move->seq->piece_taken.y] = 00000000;
+       this_seq = game->moves->seq->next;
+      }
+      else if(!(is_Dame(this_move->seq->c_old.x, this_move->seq->c_old.y, game)) && (this_move->seq->c_new.y == 9)){
+       this_seq->old_orig = 00000001;
+       game->board[this_move->seq->c_old.x][this_move->seq->c_old.y] = 00000000;
+       game->board[this_move->seq->c_new.x][9] = 00000111;
+       game->board[this_move->seq->piece_taken.x][this_move->seq->piece_taken.y] = 00000000;
+       if(is_Dame(this_move->seq->piece_taken.x,this_move->seq->piece_taken.x, game)){
+        this_seq->piece_value = 00000111;
+       }
+       else{
+        this_seq->piece_value = 00000011;
+       }
+       this_seq = game->moves->seq->next;
       }
       else{
-       game->board[move->seq->c_old.x][move->seq->c_old.y] = 00000000;
-       game->board[move->seq->c_new.x][move->seq->c_new.y] = 00000001;
-       game->board[taken->x][taken->y] = 00000000;
+       this_seq->old_orig = 00000001;
+       game->board[this_move->seq->c_old.x][this_move->seq->c_old.y] = 00000000;
+       game->board[this_move->seq->c_new.x][this_move->seq->c_new.y] = 00000001;
+       game->board[this_move->seq->piece_taken.x][this_move->seq->piece_taken.y] = 00000000;
+       if(is_Dame(this_move->seq->piece_taken.x,this_move->seq->piece_taken.y, game)){
+        this_seq->piece_value = 00000111;
+       }
+       else{
+        this_seq->piece_value = 00000011;
+       }
+       this_seq = game->moves->seq->next;
       }
      }
-     else if(is_White(move->seq->c_old.x, move->seq->c_old.y, game)){
-      if(is_Dame(move->seq->c_old.x, move->seq->c_old.y, game)){
-       game->board[move->seq->c_old.x][move->seq->c_old.y] = 00000000;
-       game->board[move->seq->c_new.x][move->seq->c_new.y] = 00000111;
-       game->board[taken->x][taken->y] = 00000000;
+     else if(is_White(this_move->seq->c_old.x,this_move->seq->c_old.y, game)){
+      if(is_Dame(this_move->seq->c_old.x, this_move->seq->c_old.y, game)){
+       this_seq->old_orig = 00000111;
+       game->board[this_move->seq->c_old.x][this_move->seq->c_old.y] = 00000000;
+       game->board[this_move->seq->c_new.x][this_move->seq->c_new.y] = 00000011;
+       game->board[this_move->seq->piece_taken.x][this_move->seq->piece_taken.y] = 00000000;
+       if(is_Dame(this_move->seq->piece_taken.x,this_move->seq->piece_taken.y, game)){
+        this_seq->piece_value = 00000011;
+       }
+       else{
+        this_seq->piece_value = 00000001;
+       }
+       this_seq = game->moves->seq->next;
+      }
+      else if(!(is_Dame(this_move->seq->c_old.x, this_move->seq->c_old.y, game)) && (this_seq->c_new.y == 0)){
+       this_seq->old_orig = 00000101;
+       game->board[this_move->seq->c_old.x][this_move->seq->c_old.y] = 00000000;
+       game->board[this_move->seq->c_new.x][0] = 00000111;
+       game->board[this_move->seq->piece_taken.x][this_move->seq->piece_taken.y] = 00000000;
+       if(is_Dame(this_move->seq->piece_taken.x,this_move->seq->piece_taken.y, game)){
+        this_seq->piece_value = 00000011;
+       }
+       else{
+        this_seq->piece_value = 00000001;
+       }
+       this_seq = game->moves->seq->next;
       }
       else{
-       game->board[move->seq->c_old.x][move->seq->c_old.y] = 00000000;
-       game->board[move->seq->c_new.x][move->seq->c_new.y] = 00000101;
-       game->board[taken->x][taken->y] = 00000000;
-      }
+       this_seq->old_orig = 00000101;
+       game->board[this_move->seq->c_old.x][this_move->seq->c_old.y] = 00000000;
+       game->board[this_move->seq->c_new.x][this_move->seq->c_new.y] = 00000101;
+       game->board[this_move->seq->piece_taken.x][this_move->seq->piece_taken.y] = 00000000;
+       if(is_Dame(this_move->seq->piece_taken.x,this_move->seq->piece_taken.y, game)){
+        this_seq->piece_value = 00000011;
+       }
+       else{
+        this_seq->piece_value = 00000001;
+       }
+       this_seq = game->moves->seq->next;
+       }
+     }
      else{
       return -1;
      }
     }
     else{
+     return -1;
+    }
+   }
+   this_move = move->next;
+   game->moves->next = this_move;
+  }
+ if(game->cur_player == 0){
+  int i, j;
+  for(i=0; i<game->xsize; i++){
+   for(j=0; j<game->ysize; j++){
+    if(is_White( i, j, game)){
      return 0;
+     game->cur_player = !(game->cur_player);
+    }
+    else{
+    }
+   } 
+  }
+  return 1;
+ else if(game->cur_player == 1){
+  int k, l;
+  for(k=0; k<game->xsize; k++){
+   for(l=0; l<game->ysize; l++){
+    if(is_Black(k, l, game){
+     return 0;
+     game->cur_player = !(game->cur_player);
+    }
+    else{
     }
    }
   }
+  return 1;    
 }  
 
 /*
@@ -369,8 +497,33 @@ int apply_moves(struct game *game, const struct move *moves){
  * @n: nombre de coups à annuler. Si n > nombre total de mouvements, alors ignorer le surplus.
  * @return: 0 si OK, -1 si erreur
  */
-int undo_moves(struct game *game, int n){
- 
+int undo_moves(struct game *game, int n) {/*On parcours la liste chainée au niveau des séquences, on vide les coordonnées c_new et on rempli les c_old grâce à la valeur old_orig de move_seq. Si une pièce a été prise, on la replace sur le damier grâce à la valeur piece_value. On passe ensuite au move précédent et on fait un appel récursif afin d'appliquer la fonction n fois.*/
+ if(game->moves == NULL) {
+  return 0;
+ }
+struct move_seq *my_seq = game->moves->seq;
+struct move_seq *prev_seq = NULL;
+ while(my_seq != NULL){
+  game->board[seq->c_new.x][seq->c_new.y] = 00000000;
+  game->board[seq->c_old.x][seq->c_old.y] = seq->old_orig;
+ if(seq->piece_value != 00000000){
+  game->board[piece_taken.x][piece_taken.y] = seq->piece_value;
+ }
+ prev_seq = my_seq;
+ my_seq = my_seq->next;
+ free(prev_seq);
+ } 
+ struct move *my_move = game->moves;
+ game->moves = my_move->next;
+ free(my_move);
+ game->cur_player = !(game->cur_player); 
+ if(n>1){
+  return undo_moves(game, n-1);
+ }
+ else{
+  return 0;
+ }
+}
 
 /*
  * print_board
@@ -403,20 +556,7 @@ int i, j;
   printf("\n");
  } 
 }
+
+#endif
  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
