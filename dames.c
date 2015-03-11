@@ -10,13 +10,14 @@
 #define DAME_NOIRE "@"
 #define DAME_BLANCHE "Q" 
 
-struct game create_game(int xsize,int ysize,int cur_player){/*Fonction allouant l'espace mémoire pour un "game"*/
- struct game *g1 = malloc(sizeof(struct game))
+struct game* create_game(int xsize,int ysize,int cur_player){/*Fonction allouant l'espace mémoire pour un "game"*/
+ struct game* g1 = malloc(sizeof(struct game))
  g1->xsize = xsize;
  g1->ysize = ysize;
  g1->move = NULL;
  g1->cur_player = cur_player;
  g1->board = (**int) malloc(xsize * ysize * sizeof(int));
+ return g1;
 }
 /*
  * new_game
@@ -44,7 +45,7 @@ struct game *g = create_game(xsize, ysize, PLAYER_WHITE);
      g->board[i][j] = 00000000;
     }
    }
-   else if ((i%2)==0 && !((j%2)==0))){
+   else if((i%2)==0 && (!(j%2)==0)){
     if(j<4){
      g->board[i][j] = 00000001;
     }
@@ -74,13 +75,13 @@ return *g;
  * @return Pointeur vers la structure du jeu ou NULL si erreur
  */
 struct game *load_game(int xsize, int ysize, const int **board, int cur_player){
- struct game g1 = malloc(sizeof(struct game));
+ struct game *g1 = malloc(sizeof(struct game));
   g1->xsize = xsize;
   g1->ysize = ysize;
-  g1->move = NULL;
+  g1->moves = NULL;
   g1->cur_player = cur_player;
   g1->board = **board;
-return *g1;
+return g1;
 } 
 
 /*
@@ -91,7 +92,7 @@ return *g1;
  */
 void free_game(struct game *game){
  free(game->board);
- free(game->move);
+ free(game->moves);
  free(game->xsize);
  free(game->ysize);
  free(game->cur_player);
