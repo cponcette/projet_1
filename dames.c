@@ -74,7 +74,7 @@ return *g;
  * @return Pointeur vers la structure du jeu ou NULL si erreur
  */
 struct game *load_game(int xsize, int ysize, const int **board, int cur_player){
- struct game g1 = malloc(sizeof(struct game))
+ struct game g1 = malloc(sizeof(struct game));
   g1->xsize = xsize;
   g1->ysize = ysize;
   g1->move = NULL;
