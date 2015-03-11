@@ -5,6 +5,7 @@
  * @ysize taille: du jeu pour ordonnées (i.e. nombre de lignes)
  * @cur_player: joueur actuel (PLAYER_WHITE ou PLAYER_BLACK)
  */
+#include <stdbool.h>
 extern struct game create_game(int xsize,int ysize,int cur_player);
 
 /*Fonction qui indique si la case est occupée par un pion ou une dame noire*/
