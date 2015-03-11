@@ -11,13 +11,12 @@
 #define DAME_BLANCHE "Q" 
 
 struct game create_game(int xsize,int ysize,int cur_player){/*Fonction allouant l'espace mémoire pour un "game"*/
- struct game *g1 = malloc(sizeof(struct game)){
+ struct game *g1 = malloc(sizeof(struct game))
  g1->xsize = xsize;
  g1->ysize = ysize;
  g1->move = NULL;
  g1->cur_player = cur_player;
- g1->board = (**int) board(xsize * ysize * sizeof(int))
- }
+ g1->board = (**int) malloc(xsize * ysize * sizeof(int));
 }
 /*
  * new_game
@@ -75,13 +74,12 @@ return *g;
  * @return Pointeur vers la structure du jeu ou NULL si erreur
  */
 struct game *load_game(int xsize, int ysize, const int **board, int cur_player){
- struct game g1 = malloc(sizeof(struct game)){
+ struct game g1 = malloc(sizeof(struct game))
   g1->xsize = xsize;
   g1->ysize = ysize;
   g1->move = NULL;
   g1->cur_player = cur_player;
   g1->board = **board;
- }
 return *g1;
 } 
 
@@ -100,19 +98,20 @@ void free_game(struct game *game){
  free(game);
 }
 
-bool is_move_seq_valid(const struct game *game, const struct move_seq *seq, const struct move_seq *prev, struct coord *taken){/*On vérifie d'abord que la séquence précédente a c_new.x,y les même que la séquence actuelle c_old.x,y. On vérifie ensuite que les pions ne sortent pas du plateau. Pour un déplacement de pion on peut avoir
+int is_move_seq_valid(const struct game *game, const struct move_seq *seq, const struct move_seq *prev, struct coord *taken){/*On vérifie d'abord que la séquence précédente a c_new.x,y les même que la séquence actuelle c_old.x,y. On vérifie ensuite que les pions ne sortent pas du plateau. Pour un déplacement de pion on peut avoir
 x qui augmente ou diminue au choix mais y peut seulement augmenter pour un pion noir et diminuer pour un blanc. Même chose pour une prise de pion (+2 ou -2 à la place de +1/-1) sauf que cette fois-ci on peut aussi prendre en arrière donc y peut augmenter et diminuer pour les deux couleurs. Si la séquence implique un mouvement de dame, il faut vérifier que la différence des coordonnées en x et en y soit égale. Si il se trouve un pion/dame sur la trajectoire de la dame, la pièce est prise si et seulement si la case adjacente à celle-ci et dans la trajectoire de la dame est vide.*/
  struct game exemple = create_game(game->xsize, game->ysize, game->cur_player);
-  if(!((prev->c_new.x == seq->c_old.x) && (prev->c_new.y == seq->c_old.y))){
+  if(!((prev->c_new.x == seq->c_old.x) && (prev->c_new.y == seq->c_old.y))){/*On vérifie que la séquence précédente et actuelle sont bien cohérentes*/
    return 0;
   }
   else{
-   if(((seq->c_new.x <= 9) && (seq->c_new.y <= 9)) && ((game->board[seq->c_new.x][seq->c_new.y]) == 00000000)){ 
+   if(((seq->c_new.x <= 9) && (seq->c_new.y <= 9)) && ((game->board[seq->c_new.x][seq->c_new.y]) == 00000000)){ /*Erreur si on sort du damier*/
     if(is_Black(seq->c_old.x, seq->c_old.y, game)){
-     if(((seq->c_new.x == (seq->c_old.x) +1) && (seq->c_new.y == seq->c_old.y +1)) || ((seq->c_new.x == seq->c_old.x -1) && (seq->c_new.y == seq->c_new.y +1))){
+     if(((seq->c_new.x == (seq->c_old.x) +1) && (seq->c_new.y == seq->c_old.y +1)) || ((seq->c_new.x == seq->c_old.x -1) && (seq->c_new.y == seq->c_new.y +1))){/*Mouvement du pion*/
       return 1;
      }
      else if(((seq->c_new.x == (seq->c_old.x) -2) && (seq->c_new.y == seq->c_new.y +2)) || ((seq->c_new.x == (seq->c_old.x) +2) && (seq->c_new.y == seq->c_old.y +2))){
+      /*Prise par un pion*/
       if(is_White(seq->c_old.x -1, seq->c_old.y +1, game) || is_White(seq->c_old.x -1, seq->c_old.y -1, game)){
        taken->x = seq->c_old.x -1;
        taken->y = seq->c_old.y +1;
@@ -123,8 +122,8 @@ x qui augmente ou diminue au choix mais y peut seulement augmenter pour un pion 
        taken->y = seq->c_old.y +1;
        return 2;
       }
-      else if(seq->c_new.x-seq->c_old.x > 2 || seq->c_old.y-seq->c_new.y > 2){
-      if(((seq->c_new.x)-(seq->c_old.x) == (seq->c_old.y)-(seq->c_new.y)) || ((seq->c_old.x)-(seq->c_new.x) == (seq->c_old.y)-(seq->c_new.y))){
+      else if(seq->c_new.x-seq->c_old.x > 2 || seq->c_old.y-seq->c_new.y > 2){/*Mouvement d'une dame*/
+      if(((seq->c_new.x)-(seq->c_old.x) == (seq->c_old.y)-(seq->c_new.y)) || ((seq->c_old.x)-(seq->c_new.x) == (seq->c_old.y)-(seq->c_new.y))){/*Différence des oronnées doit valloir la différence des abscisses*/
        if(((seq->c_old.x) > (seq->c_new.x)) && ((seq->c_old.y) > (seq->c_new.y))){
         int i;
         for (i=0; i<((seq->c_old.x)-(seq->c_new.x)) ; i++){
@@ -156,7 +155,7 @@ x qui augmente ou diminue au choix mais y peut seulement augmenter pour un pion 
        if(((seq->c_old.x) > (seq->c_new.x)) && ((seq->c_old.y) < (seq->c_new.y))){
         int i;
         for(i=0; i<((seq->c_old.x)-(seq->c_new.x)); i++){
-         if(is_White(seq->c_new.x +i, (seq->c_old.y)+i , game) && (game->board[(seq->c_new.x+i)+1][(seq->c_old.y+i)+1] == 00000000)){
+         if(is_White(seq->c_new.x +i, (seq->c_old.y)+i , game) && (game->board[(seq->c_new.x+i)+1][(seq->c_old.y+i)+1] == 00000000)){ /*On vérifie qu'il n'y a pas 2 pions qui se suivent dans la trajectoire de la dame, sans quoi pas de prise*/
           taken->x = (seq->c_new.x)+i;
           taken->y = (seq->c_old.y)+i;
           return 2;
@@ -185,7 +184,7 @@ x qui augmente ou diminue au choix mais y peut seulement augmenter pour un pion 
       }
      }  
     }       
-    else if(is_White(seq->c_old.x,seq->c_old.y, game)){
+    else if(is_White(seq->c_old.x,seq->c_old.y, game)){/*Même chose si le pion ou la dame est blanche*/
      if((seq->c_new.x == (seq->c_old.x) +1) && (seq->c_new.y == (seq->c_old.y) -1) || ((seq->c_new.x == (seq->c_old.x) -1) && (seq->c_new.y == (seq->c_old.y) -1))){
       return 1;
      }
@@ -322,15 +321,15 @@ struct move *this_move = game->moves;
 struct  move_seq *this_seq = game->moves->seq;
   while(this_move != NULL)do{
    while(this_seq != NULL)do{
-    if(is_move_seq_valid(game, this_move->seq, NULL, NULL) == 1){
-     if(is_Black(this_move->seq->c_old.x,this_move->seq->c_old.y, game)){
+    if(is_move_seq_valid(game, this_move->seq, NULL, NULL) == 1){/*Si le mouvement n'implique pas une prise*/
+     if(is_Black(this_move->seq->c_old.x,this_move->seq->c_old.y, game)){/*Si pièce noire*/
       if(is_Dame(this_move->seq->c_old.x, this_move->seq->c_old.y, game)){
        this_seq->old_orig = 00000011;
        game->board[this_move->seq->c_old.x][this_move->seq->c_old.y] = 00000000;
        game->board[this_move->seq->c_new.x][this_move->seq->c_new.y] = 00000011;
        this_seq = game->moves->seq->next;
       }
-      else if(!(is_Dame(this_move->seq->c_old.x, this_move->seq->c_old.y, game)) && (this_move->seq->c_new.y == 9)){
+      else if(!(is_Dame(this_move->seq->c_old.x, this_move->seq->c_old.y, game)) && (this_move->seq->c_new.y == 9)){/*Si un pion arrive à la fin du damier, il devient une dame*/
        this_seq->old_orig = 00000001;
        game->board[this_move->seq->c_old.x][this_move->seq->c_old.y] = 00000000;
        game->board[this_move->seq->c_new.x][9] = 00000011;
@@ -343,7 +342,7 @@ struct  move_seq *this_seq = game->moves->seq;
        this_seq = game->moves->seq->next;
       }
      }
-     else if(is_White(this_move->seq->c_old.x,this_move->seq->c_old.y, game)){
+     else if(is_White(this_move->seq->c_old.x,this_move->seq->c_old.y, game)){/*Si pièce blanche*/
       if(is_Dame(this_move->seq->c_old.x,this_move->seq->c_old.y, game)){
        this_seq->old_orig = 00000111;
        game->board[this_move->seq->c_old.x][this_move->seq->c_old.y] = 00000000;
@@ -367,9 +366,9 @@ struct  move_seq *this_seq = game->moves->seq;
       return -1;
      }
     }
-    else if(is_move_seq_valid(game, this_move->seq, NULL, NULL) == 2){
-     if(is_Black(this_move->seq->c_old.x, this_move->seq->c_old.y, game)){
-      if(is_Dame(this_move->seq->c_old.x, this_move->seq->c_old.y, game)){
+    else if(is_move_seq_valid(game, this_move->seq, NULL, NULL) == 2){/*Si le mouvement implique une prise*/
+     if(is_Black(this_move->seq->c_old.x, this_move->seq->c_old.y, game)){/*Si le pion est noir*/
+      if(is_Dame(this_move->seq->c_old.x, this_move->seq->c_old.y, game)){/*Une dame*/
        this_seq->old_orig = 00000011;
        game->board[this_move->seq->c_old.x][this_move->seq->c_old.y] = 00000000;
        game->board[this_move->seq->c_new.x][this_move->seq->c_new.y] = 00000011;
@@ -382,7 +381,7 @@ struct  move_seq *this_seq = game->moves->seq;
        game->board[this_move->seq->piece_taken.x][this_move->seq->piece_taken.y] = 00000000;
        this_seq = game->moves->seq->next;
       }
-      else if(!(is_Dame(this_move->seq->c_old.x, this_move->seq->c_old.y, game)) && (this_move->seq->c_new.y == 9)){
+      else if(!(is_Dame(this_move->seq->c_old.x, this_move->seq->c_old.y, game)) && (this_move->seq->c_new.y == 9)){/*Si un pion noir prend un blanc et arrive aux abords du plateau, il devient une dame*/
        this_seq->old_orig = 00000001;
        game->board[this_move->seq->c_old.x][this_move->seq->c_old.y] = 00000000;
        game->board[this_move->seq->c_new.x][9] = 00000111;
@@ -409,7 +408,7 @@ struct  move_seq *this_seq = game->moves->seq;
        this_seq = game->moves->seq->next;
       }
      }
-     else if(is_White(this_move->seq->c_old.x,this_move->seq->c_old.y, game)){
+     else if(is_White(this_move->seq->c_old.x,this_move->seq->c_old.y, game)){/*Même chose pour une pièce blanche*/
       if(is_Dame(this_move->seq->c_old.x, this_move->seq->c_old.y, game)){
        this_seq->old_orig = 00000111;
        game->board[this_move->seq->c_old.x][this_move->seq->c_old.y] = 00000000;
@@ -458,12 +457,12 @@ struct  move_seq *this_seq = game->moves->seq;
      return -1;
     }
    }
-   this_move = move->next;
+   this_move = game->moves->next;
    game->moves->next = this_move;
   }
  if(game->cur_player == 0){
   int i, j;
-  for(i=0; i<game->xsize; i++){
+  for(i=0; i<game->xsize; i++){/*On vérifie que le joueur qui n'a pas joué possède encore des pièces, sinon fin de partie*/
    for(j=0; j<game->ysize; j++){
     if(is_White( i, j, game)){
      return 0;
@@ -504,12 +503,12 @@ int undo_moves(struct game *game, int n) {/*On parcours la liste chainée au niv
 struct move_seq *my_seq = game->moves->seq;
 struct move_seq *prev_seq = NULL;
  while(my_seq != NULL){
-  game->board[seq->c_new.x][seq->c_new.y] = 00000000;
+  game->board[seq->c_new.x][seq->c_new.y] = 00000000;/*On vide la case occupée auparavant*/
   game->board[seq->c_old.x][seq->c_old.y] = seq->old_orig;
  if(seq->piece_value != 00000000){
-  game->board[piece_taken.x][piece_taken.y] = seq->piece_value;
+  game->board[piece_taken.x][piece_taken.y] = seq->piece_value;/* On rempli la case où une prise a été effectuée*/
  }
- prev_seq = my_seq;
+ prev_seq = my_seq;/*On passe à la séquence suivante*/
  my_seq = my_seq->next;
  free(prev_seq);
  } 
@@ -517,7 +516,7 @@ struct move_seq *prev_seq = NULL;
  game->moves = my_move->next;
  free(my_move);
  game->cur_player = !(game->cur_player); 
- if(n>1){
+ if(n>1){/*Appel récursif*/
   return undo_moves(game, n-1);
  }
  else{
@@ -558,5 +557,3 @@ int i, j;
 }
 
 #endif
- 
-
